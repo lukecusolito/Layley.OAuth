@@ -16,6 +16,7 @@ namespace Layley.OAuth
         public string ConsumerSecret { get; }
         public string AccessToken { get; }
         public string AccessTokenSecret { get; }
+        internal Uri CallbackUri { get; }
         #endregion
 
         #region Fields
@@ -33,18 +34,21 @@ namespace Layley.OAuth
 
             sigHasher = new HMACSHA1(new ASCIIEncoding().GetBytes($"{consumerSecret}&{accessTokenSecret}"));
         }
+
+        internal Consumer(string consumerKey, string consumerSecret, string callbackUrl) : this(consumerKey, consumerSecret)
+        {
+            CallbackUri = new Uri(callbackUrl);
+        }
         #endregion
 
         #region Public Methods
-        public AuthenticationHeaderValue GetOAuthHeader(string url, HttpMethod httpMethod, string callbackUrl = null)
+        public AuthenticationHeaderValue GetOAuthHeader(Uri uri, HttpMethod httpMethod)
         {
-            return new AuthenticationHeaderValue("OAuth", GetOAuthHeaderValue(url, httpMethod, callbackUrl));
+            return new AuthenticationHeaderValue("OAuth", GetOAuthHeaderValue(uri, httpMethod));
         }
 
-        public string GetOAuthHeaderValue(string url, HttpMethod httpMethod, string callbackUrl = null)
+        public string GetOAuthHeaderValue(Uri uri, HttpMethod httpMethod)
         {
-            var uri = new Uri(url);
-            var callbackUri = new Uri(callbackUrl);
 
             var timestamp = (int)((DateTime.UtcNow - epochUtc).TotalSeconds);
             string oauth_nonce = Guid.NewGuid().ToString("N");
@@ -62,8 +66,8 @@ namespace Layley.OAuth
             queryParameters.Add("oauth_nonce", oauth_nonce);
             queryParameters.Add("oauth_version", "1.0");
 
-            if (callbackUri != null)
-                queryParameters.Add("oauth_callback", callbackUri.AbsoluteUri);
+            if (CallbackUri != null)
+                queryParameters.Add("oauth_callback", CallbackUri.AbsoluteUri);
             else
                 queryParameters.Add("oauth_token", AccessToken);
 
