@@ -1,6 +1,7 @@
 ﻿using Layley.OAuth.Models;
 using Layley.OAuth.Utilities;
 using System;
+using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -68,9 +69,39 @@ namespace Layley.OAuth.Handlers
         public string GetAuthorizationUrl(string requestToken) =>
             $"{_oAuthConfig.AuthorizeTokenUrl}?oauth_token={requestToken}";
 
+        /// <summary>
+        /// Exchanges request token for an access token
+        /// </summary>
+        /// <param name="requestToken"></param>
+        /// <param name="requestTokenSecret"></param>
+        /// <param name="verifier"></param>
+        /// <returns></returns>
         public async Task<OAuthAccessToken> GetAccessTokenAsync(string requestToken, string requestTokenSecret, string verifier)
         {
-            throw new NotImplementedException();
+            var consumer = new Consumer(_oAuthConfig.ConsumerKey, _oAuthConfig.ConsumerSecret, requestToken, requestTokenSecret, verifier);
+
+            using (var client = new OAuthHttpClient(consumer))
+            {
+                // Get Access Token
+                var result = await client.PostAsync(_oAuthConfig.AccessTokenUrl, null);
+
+                if (!result.IsSuccessStatusCode) // TODO: Replace with meaningful error message
+                    throw new Exception($"Unable to get access token: {result.ReasonPhrase}");
+
+                // Read token parameters
+                var accessTokenParameters = await result.Content.ReadAsStringAsync();
+                var accessTokenInformation = Regex.Match(accessTokenParameters, OAUTH_ACCESS_TOKEN_RESPONSE_REGEX);
+                
+                // Get token properties
+                var accessToken = accessTokenInformation.Groups["oauth_token"].Value;
+                var accessTokenSecret = accessTokenInformation.Groups["oauth_token_secret"].Value;
+
+                return new OAuthAccessToken
+                {
+                    AccessToken = accessToken,
+                    AccessTokenSecret = accessTokenSecret
+                };
+            }
         }
         #endregion
     }

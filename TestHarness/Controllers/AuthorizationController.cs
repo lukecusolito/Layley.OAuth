@@ -42,5 +42,12 @@ namespace TestHarness.Controllers
         {
             return _oAuthAuthorization.GetAuthorizationUrl(requestToken);
         }
+
+        [HttpGet]
+        [Route("AccessToken")]
+        public async Task<OAuthAccessToken> GetAccessToken([FromQuery(Name = "oauth_token")]string requestToken, [FromQuery(Name = "oauth_consumer_key")]string requestTokenSecret, [FromQuery(Name = "oauth_verifier")]string verifier)
+        {
+            return await _oAuthAuthorization.GetAccessTokenAsync(requestToken, requestTokenSecret, verifier);
+        }
     }
 }

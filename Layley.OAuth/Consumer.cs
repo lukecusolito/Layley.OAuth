@@ -17,6 +17,7 @@ namespace Layley.OAuth
         public string AccessToken { get; }
         public string AccessTokenSecret { get; }
         internal Uri CallbackUri { get; }
+        internal string Verifier { get; }
         #endregion
 
         #region Fields
@@ -35,9 +36,12 @@ namespace Layley.OAuth
             sigHasher = new HMACSHA1(new ASCIIEncoding().GetBytes($"{consumerSecret}&{accessTokenSecret}"));
         }
 
-        internal Consumer(string consumerKey, string consumerSecret, string callbackUrl) : this(consumerKey, consumerSecret)
+        internal Consumer(string consumerKey, string consumerSecret, string accessToken = null, string accessTokenSecret = null, string verifier = null, string callbackUrl = null) : this(consumerKey, consumerSecret, accessToken, accessTokenSecret)
         {
-            CallbackUri = new Uri(callbackUrl);
+            if(callbackUrl != null)
+                CallbackUri = new Uri(callbackUrl);
+
+            Verifier = verifier;
         }
         #endregion
 
@@ -70,6 +74,9 @@ namespace Layley.OAuth
                 queryParameters.Add("oauth_callback", CallbackUri.AbsoluteUri);
             else
                 queryParameters.Add("oauth_token", AccessToken);
+
+            if(Verifier != null)
+                queryParameters.Add("oauth_verifier", Verifier);
 
             queryParameters.Add("oauth_signature", GenerateOAuthSignature(uri, httpMethod, queryParameters));
 
