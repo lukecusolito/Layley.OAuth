@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace Layley.OAuth.Models
 {
@@ -8,5 +6,6 @@ namespace Layley.OAuth.Models
     {
         public string AccessToken { get; set; }
         public string AccessTokenSecret { get; set; }
+        public Dictionary<string, string> RawParameters { get; set; }
     }
 }

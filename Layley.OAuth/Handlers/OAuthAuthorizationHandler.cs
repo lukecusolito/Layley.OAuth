@@ -1,8 +1,7 @@
 ﻿using Layley.OAuth.Models;
 using Layley.OAuth.Utilities;
 using System;
-using System.Net.Http;
-using System.Text.RegularExpressions;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Layley.OAuth.Handlers
@@ -11,9 +10,6 @@ namespace Layley.OAuth.Handlers
     {
         #region Fields
         private readonly OAuthConfig _oAuthConfig;
-
-        private const string OAUTH_REQUEST_TOKEN_RESPONSE_REGEX = "oauth_token=(?<oauth_token>(?:\\w|\\-)*)&oauth_token_secret=(?<oauth_token_secret>(?:\\w)*)&oauth_callback_confirmed=(?<oauth_callback_confirmed>(?:\\w)*)";
-        private const string OAUTH_ACCESS_TOKEN_RESPONSE_REGEX = "oauth_token=(?<oauth_token>(?:\\w|\\-)*)&oauth_token_secret=(?<oauth_token_secret>(?:\\w)*)&user_id=(?<user_id>(?:\\w)*)&screen_name=(?<screen_name>(?:\\w)*)";
         #endregion
 
         #region Constructor
@@ -41,22 +37,19 @@ namespace Layley.OAuth.Handlers
                     throw new Exception($"Unable to get request token: {result.ReasonPhrase}");
 
                 // Read token parameters
-                var requestTokenParameters = await result.Content.ReadAsStringAsync();
-                var requestTokenInformation = Regex.Match(requestTokenParameters, OAUTH_REQUEST_TOKEN_RESPONSE_REGEX);
+                var rawRequestTokenParameters = await result.Content.ReadAsStringAsync();
+                var requestTokenParameters = GetParametersFromString(rawRequestTokenParameters);
 
                 // Verify if callback is confirmed
                 bool callbackConfirmed;
-                if (!bool.TryParse(requestTokenInformation.Groups["oauth_callback_confirmed"].Value, out callbackConfirmed) || !callbackConfirmed)
+                if (!bool.TryParse(requestTokenParameters["oauth_callback_confirmed"], out callbackConfirmed) || !callbackConfirmed)
                     return null;
-
-                // Get token properties
-                var requestToken = requestTokenInformation.Groups["oauth_token"].Value;
-                var requestTokenSecret = requestTokenInformation.Groups["oauth_token_secret"].Value;
-
+                
                 return new OAuthRequestToken
                 {
-                    RequestToken = requestToken,
-                    RequestTokenSecret = requestTokenSecret
+                    RequestToken = requestTokenParameters["oauth_token"],
+                    RequestTokenSecret = requestTokenParameters["oauth_token_secret"],
+                    RawParameters = requestTokenParameters
                 };
             }
         }
@@ -89,19 +82,33 @@ namespace Layley.OAuth.Handlers
                     throw new Exception($"Unable to get access token: {result.ReasonPhrase}");
 
                 // Read token parameters
-                var accessTokenParameters = await result.Content.ReadAsStringAsync();
-                var accessTokenInformation = Regex.Match(accessTokenParameters, OAUTH_ACCESS_TOKEN_RESPONSE_REGEX);
-                
-                // Get token properties
-                var accessToken = accessTokenInformation.Groups["oauth_token"].Value;
-                var accessTokenSecret = accessTokenInformation.Groups["oauth_token_secret"].Value;
+                var rawAccessTokenParameters = await result.Content.ReadAsStringAsync();
+                var accessTokenParameters = GetParametersFromString(rawAccessTokenParameters);
 
                 return new OAuthAccessToken
                 {
-                    AccessToken = accessToken,
-                    AccessTokenSecret = accessTokenSecret
+                    AccessToken = accessTokenParameters["oauth_token"],
+                    AccessTokenSecret = accessTokenParameters["oauth_token_secret"],
+                    RawParameters = accessTokenParameters
                 };
             }
+        }
+        #endregion
+
+        #region Private Methods
+        private Dictionary<string, string> GetParametersFromString(string parameterString)
+        {
+            var parameters = new Dictionary<string, string>();
+
+            var keyValuePairs = parameterString.Split('&');
+
+            foreach (var kvp in keyValuePairs)
+            {
+                var split = kvp.Split('=');
+                parameters.Add(split[0], split[1]);
+            }
+
+            return parameters;
         }
         #endregion
     }
