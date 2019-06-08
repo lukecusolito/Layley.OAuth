@@ -4,9 +4,9 @@ using System;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace Layley.OAuth.Helpers
+namespace Layley.OAuth.Handlers
 {
-    public class OAuthAuthorizationHelper
+    public class OAuthAuthorizationHandler
     {
         #region Fields
         private readonly OAuthConfig _oAuthConfig;
@@ -16,7 +16,7 @@ namespace Layley.OAuth.Helpers
         #endregion
 
         #region Constructor
-        public OAuthAuthorizationHelper(OAuthConfig oAuthConfig)
+        public OAuthAuthorizationHandler(OAuthConfig oAuthConfig)
         {
             _oAuthConfig = oAuthConfig;
         }

@@ -1,4 +1,4 @@
-﻿using Layley.OAuth.Helpers;
+﻿using Layley.OAuth.Handlers;
 using Layley.OAuth.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
@@ -10,7 +10,7 @@ namespace TestHarness.Controllers
     public class AuthorizationController : ControllerBase
     {
         #region Fields
-        private readonly OAuthAuthorizationHelper _oAuthAuthorization;
+        private readonly OAuthAuthorizationHandler _oAuthAuthorization;
         private readonly OAuthConfig _oAuthConfig = new OAuthConfig
         {
             ConsumerKey = "",
@@ -25,7 +25,7 @@ namespace TestHarness.Controllers
         #region Constructor
         public AuthorizationController()
         {
-            _oAuthAuthorization = new OAuthAuthorizationHelper(_oAuthConfig);
+            _oAuthAuthorization = new OAuthAuthorizationHandler(_oAuthConfig);
         }
         #endregion
 
