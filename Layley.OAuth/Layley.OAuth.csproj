@@ -2,6 +2,15 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <Authors>Luke Cusolito</Authors>
+    <Company>The Bearded Developers</Company>
+    <PackageProjectUrl>https://github.com/lukecusolito/Layley.OAuth</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/lukecusolito/Layley.OAuth</RepositoryUrl>
+    <RepositoryType>GIT</RepositoryType>
+    <PackageTags>OAuth Layley 1.0 1 1.0a client consumer helper simple</PackageTags>
+    <Description>A simplified OAuth 1.0 consumer</Description>
+    <PackageReleaseNotes>Initial Release</PackageReleaseNotes>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
   </PropertyGroup>
 
 </Project>
